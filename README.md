@@ -20,17 +20,21 @@ Network topologies are defined using JointJS via a Django website, while simulat
 1. Assumming you're using the sample network named 'simple', first ensure input patterns are defined. You can copy the 'simple' directory in tests/data to the DATA_DIR destination.
 2. Then, in the terminal, start a shell with `python manage.py shell` and run, e.g:
 
+```
     from simulator.tasks import load_network
     network = load_network('simple')
     network.train(50, 50)
     network.display()
     network.performance_check()
+```
 
 3. A 2D plot with categorization performance can be created with:
 
+```
     from simulator.tools import *
     c = ConvergenceMap(network)
     c.display('in', 0, 1, 'out', 100)
+```
 
 Note: You need to install gnuplot for this. On OS X: `brew install --with-aquaterm --with-x11 --without-emacs --with-cairo --with-qt --with-pdflib-lite gnuplot`
 
