@@ -1,0 +1,6 @@
+Django>1.7,<1.9
+django-bootstrap3==6.2.2
+django-enumfields==0.7.4
+matplotlib==1.4.3
+numpy==1.9.2
+scipy==0.16.0

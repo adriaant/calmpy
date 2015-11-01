@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Edit parameters for "{{ name }}"{% endblock %}
+{% block content %}
+    <form id="parameter_form" role="form" method="POST" class="form">
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      {{ parameters.management_form }}
+      {% for inline_form in parameters %}
+        <div class="row">
+            {% for field in inline_form %}
+                {% if field.name == 'ptype' %}
+                    <div class="col-md-1">
+                     {{ inline_form.ptype }}
+                    {% for value, title in inline_form.fields.ptype.choices %}
+                        {% if value == inline_form.ptype.value|add:0 %}
+                            {{ title }} : 
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="col-md-2">
+                    {% bootstrap_field field show_label=False %}
+                {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+      {% endfor %}
+      {% buttons %}
+        <button type="submit" class="btn btn-primary">Save</button>
+      {% endbuttons %}
+    </form>
+{% endblock %}

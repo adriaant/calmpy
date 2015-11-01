@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Networks{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if object_list %}
+    <table class="table table-striped">
+        <tr>
+          <th>Name</th>
+          <th>Created</th>
+          <th>Modified</th>
+        </tr>
+        {% for obj in object_list %}
+        <tr>
+            <td><a href="{% url "definition_edit" pk=obj.pk %}">{{ obj.name }}</a></td>
+            <td>{{ obj.created_date }}</td>
+            <td>{{ obj.modified_date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    <h3><a href="{% url "definition_create" %}" class="top-menu"><span class="glyphicon glyphicon-plus"></span></a></h3>
+</div>
+{% endblock %}

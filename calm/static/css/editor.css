@@ -1,0 +1,227 @@
+html, body 
+{
+	padding: 0px;
+	margin: 0px;
+	font-family: sans-serif;
+	font-size: small;
+	overflow: hidden;
+	background-color: #fff;
+}
+
+.header
+{
+	padding: 20px;
+}
+
+.back_btn {
+    display: inline-block;
+    text-align: center;
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABOElEQVRIibXWQUrDUBAG4K8uxAOIS5HSlXgJ9QriSlwVj1CKFyg9SqngAYpncCOKIO6KIIIUl7HERZISjeS9NPSHgZDM+2fe/97MpKMePZzjGEfYzd9/4AF3uMFLgKeCLqZIkAYswSRfE4VLLCKI/9oCFyHyIZZrkBe2xKAu8zbk5SCVnXTXlKVOrl9nMm2w+Bb3EX6Tgrwn7rakeSLb2MNTwDfJuV03JIcTfEWsGcIscrtNydOc29sGMi9sLqB/G/IUyZZ6vOI7fz7ATsD/X4QkGpd8+5oV45y4Qx6Vglw1CDIju0oxzmMUkvbF1c6QZoVWlitUP6tCI7vnsbqOsI/ngN+qVdC82X0GvleaHVmL3Vi7LjBoGaR24JR3srGRWaArO6TWQ78TCNTDGU5xKJsD8I5HEb8tP25fjQPls4nrAAAAAElFTkSuQmCC") no-repeat left center transparent;
+}
+
+.header form label {
+	font-weight: bold;
+	font-size: 16px;
+	padding-right: 12px;
+}
+
+.header input[type="text"] {
+	font-size: 16px;
+    color: #555;
+    width: 120px;
+    padding: 3px 0px 3px 5px;
+    margin-top: 2px;
+    margin-right: 6px;
+    margin-bottom: 16px;
+    border: 1px solid #e5e5e5;
+    background: #fbfbfb;
+    height: 25px;
+    line-height:15px;
+    outline: 0;
+    -webkit-box-shadow: inset 1px 1px 2px rgba(200,200,200,0.2);
+    box-shadow: inset 1px 1px 2px rgba(200,200,200,0.2);
+}
+
+.header input[type="submit"] {
+  -webkit-border-radius: 28;
+  -moz-border-radius: 28;
+  border-radius: 28px;
+  text-shadow: 1px 1px 3px #666666;
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 16px;
+  background: #3498db;
+  padding: 6px 20px 6px 20px;
+  text-decoration: none;
+  border: solid #1f628d 0px;
+}
+
+.header input[type="submit"]:hover {
+  background: #3cb0fd;
+  text-decoration: none;
+}
+
+#paper
+{
+	color: #fff;
+	position: relative;
+	display: inline-block;
+	background: transparent;
+	background-image: url(/static/img/grid.png);
+	border: 1px solid #ccc;
+}
+
+#paper svg
+{
+	background: transparent;
+}
+
+#paper svg .link
+{
+	z-index: 2;
+}
+
+/*
+Editor tools
+*/
+.marker-target
+{
+	fill: #000;
+	stroke-width: 0;
+}
+
+.marker-vertex-group {
+   display: none;
+}
+
+.marker-arrowhead
+{
+   fill: #000;
+   stroke: none;
+}
+
+.marker-arrowhead:hover
+{
+   fill: #ccc;
+}
+
+.link-tools .tool-remove circle
+{
+   fill: #c0392b;
+}
+
+.connection
+{
+	stroke: #000;
+}
+
+.connection-wrap, .connection { pointer-events: none; }
+
+.inPorts circle
+{
+	fill: #FF6666;
+	stroke-width: 1;
+}
+
+.outPorts circle
+{
+	fill: #FF8000;
+	stroke-width: 1;
+}
+
+/*
+Module styles
+*/
+
+.module
+{
+	position: absolute;
+	background: rgba(153,153,153,0.7);
+	/* Make sure events are propagated to the JointJS element so, e.g. dragging works.*/
+	pointer-events: none;
+	-webkit-user-select: none;
+	padding: 8px;
+	box-sizing: border-box;
+	z-index: 2;
+	border: 1px solid #333333;
+}
+
+.module input, .module button
+{
+	/* Enable interacting with inputs only. */
+	pointer-events: auto;	
+	border: none;
+	box-sizing: border-box;
+	background-color: #456;
+	color: #fff;
+}
+
+.module .label
+{
+	color: #ddd;
+}
+
+.module .label.Text
+{
+	color: #E6E6E6;
+}
+
+.module .label.Standard
+{
+	color: #acf;
+}
+
+.module .label.Map
+{
+	color: #dc5;
+}
+
+#paper button
+{
+	float: right;
+	border: none;
+	border-radius: 8px;
+	font-weight: bold;
+	width: 16px;
+	height: 16px;
+	line-height: 0px;
+	text-align: middle;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	padding-bottom: 1px;
+}
+
+#paper button.delete:hover
+{
+	background-color: #c0392b;
+}
+
+.module button.add:hover
+{
+	background-color: #8c6;
+}
+
+.module button.remove:hover
+{
+	background-color: #dc5;
+}
+
+.module input
+{
+	width: 100%;
+	padding: 4px;
+	margin-top: 8px;
+}
+
+.module
+{
+	color: #fff;
+}
+
+.port-label {
+	display: none;
+}

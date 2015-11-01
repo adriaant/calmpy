@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+          <div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder text-center">
+              <img src="//placehold.it/200/6666ff/fff" class="center-block img-responsive img-circle" alt="Generic placeholder thumbnail">
+              <h4>Label</h4>
+              <span class="text-muted">Something else</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder text-center">
+              <img src="//placehold.it/200/66ff66/fff" class="center-block img-responsive img-circle" alt="Generic placeholder thumbnail">
+              <h4>Label</h4>
+              <span class="text-muted">Something else</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder text-center">
+              <img src="//placehold.it/200/6666ff/fff" class="center-block img-responsive img-circle" alt="Generic placeholder thumbnail">
+              <h4>Label</h4>
+              <span class="text-muted">Something else</span>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder text-center">
+              <img src="//placehold.it/200/66ff66/fff" class="center-block img-responsive img-circle" alt="Generic placeholder thumbnail">
+              <h4>Label</h4>
+              <span class="text-muted">Something else</span>
+            </div>
+          </div>
+          
+          <hr>
+
+          <h2 class="sub-header">Available networks
+          <a href="{% url "definition_create" %}" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-plus"></span> Add new</a>
+          </h2>
+          {% if object_list %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Created</th>
+                  <th>Modified</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for obj in object_list %}
+                <tr>
+                    <td><a href="{% url "definition_edit" pk=obj.pk %}">{{ obj.name }}</a></td>
+                    <td>{{ obj.created_date }}</td>
+                    <td>{{ obj.modified_date }}</td>
+                    <td><a href="{% url "parameter_edit" pk=obj.pk %}"><span class="glyphicon glyphicon-cog"></span></a></td>
+                    <td><a class="confirm" href="{% url "definition_delete" pk=obj.pk %}"><span class="glyphicon glyphicon-remove text-danger"></span></a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p>No networks defined yet.</p>
+          {% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load staticfiles bootstrap3 %}
+{% block head_scripts_styles %}
+        <link rel="stylesheet" href="{% static 'css/joint.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/editor.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/jquery.contextmenu.css' %}">
+        <script src="{% static 'js/joint.js' %}"></script>
+        <script src="{% static 'js/jquery.contextmenu.js' %}"></script>
+        <script src="{% static 'js/joint.shapes.devs.js' %}"></script>
+{% endblock %}
+{% block body %}
+<div id="container">
+  <div class="header">
+    <h2><a class="back_btn" href="{% url 'home' %}"></a> Network Editor</h2>
+    <form id="network_form" method="POST" class="form">
+      {% csrf_token %}
+      {{ form }}
+      <input type="submit" class="savebtn" value="Save" />
+    </form>
+  </div>
+  <div id="paper"></div>
+</div>
+<script src="{% static 'js/calm_editor.js' %}"></script>
+{% endblock %}
