@@ -1521,7 +1521,7 @@ blockquote.pull-right footer:after,
 blockquote.pull-right small:after,
 .blockquote-reverse .small:after,
 blockquote.pull-right .small:after {
-  content: '\00A0 \2014';
+  content: '\00A0 \2015';
 }
 address {
   margin-bottom: 20px;
