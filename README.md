@@ -21,7 +21,7 @@ Network topologies are defined using JointJS via a Django website, while simulat
 2. Then, in the terminal, start a shell with `python manage.py shell` and run, e.g:
 
 ```
-    from simulator.tasks import load_network
+    from simulator import load_network
     network = load_network('simple')
     network.train(50, 50)
     network.display()

@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 import pytest
 import numpy as np
-from simulator.tasks import load_network
+from simulator import load_network
 from .factories import get_fake_random
 
 pytestmark = pytest.mark.django_db
