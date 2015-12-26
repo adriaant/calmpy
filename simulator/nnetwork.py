@@ -11,7 +11,7 @@ from django.utils.six.moves import xrange
 from django.utils.encoding import python_2_unicode_compatible
 from .exceptions import CALMException
 from .helpers import printoptions
-from .utils import ensure_directory
+from .utils import ensure_directory, NumpyEncoder, json_numpy_obj_hook
 from .nmodule import ModuleFactory, InputModule
 
 logger = logging.getLogger(__name__)
@@ -87,6 +87,28 @@ class CALMNetwork(object):
             for (k, v) in six.iteritems(pattern):
                 pattern[k] = np.fromstring(v, dtype='d', sep=' ')
 
+    def load_weights(self, name):
+        """Loads weights from file with given name, located in data directory."""
+        weight_file = os.path.join(self.data_dir, name)
+        with open(weight_file) as f:
+            weight_data = json.load(f, object_hook=json_numpy_obj_hook)
+        if weight_data:
+            for (to_mdl_name, conns) in six.iteritems(weight_data):
+                to_mdl = self.module_with_name(to_mdl_name)
+                for (from_mdl_name, weights) in six.iteritems(conns):
+                    from_mdl = self.module_with_name(from_mdl_name)
+                    to_mdl.set_weights(from_mdl, weights)
+
+    def save_weights(self, name):
+        """Saves weights to file with given name, located in data directory."""
+        weight_file = os.path.join(self.data_dir, name)
+        weight_data = {}
+        for mdl in self.modules:
+            weight_data[mdl.name] = mdl.get_weights()
+
+        with open(weight_file, 'w') as f:
+            json.dump(weight_data, f, cls=NumpyEncoder)
+
     def train(self, epochs=100, iterations=50, reset=False):
         """Trains the network for the given amount of epochs and iterations."""
 
@@ -134,7 +156,8 @@ class CALMNetwork(object):
     def performance_check(self, iterations=100):
         """Tests the network on each pattern and reports activations and winners."""
         for pat in self.patterns:
-            logger.info("Pattern: {0}".format(pat))
+            with printoptions(formatter={'float': '{: 0.2f}'.format}, suppress=True):
+                logger.info("Pattern: {0}".format(pat))
 
             # reset activations
             for mdl in self.modules:

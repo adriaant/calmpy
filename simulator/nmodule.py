@@ -7,6 +7,7 @@ import numpy as np
 from django.utils.six.moves import xrange
 from django.utils.encoding import python_2_unicode_compatible
 from .exceptions import CALMException
+from .helpers import printoptions
 from .utils import random_val
 
 logger = logging.getLogger(__name__)
@@ -153,8 +154,10 @@ class StandardModule(ModuleFactory):
         self.activate_internal()
 
     def activate_r(self, testing):
-        """Calculate the new activation of R-nodes."""
-
+        """
+            Calculate the new activation of R-nodes.
+            When 'testing' is True, then no random pulses from E-node are sent.
+        """
         # activations from connected modules
         r_acts = self.connections[0].from_module.r
         r_weights = self.connections[0].weights
@@ -182,7 +185,6 @@ class StandardModule(ModuleFactory):
         self.v_new = self.update_func(self.v, np.dot(self.rv_to_v, r_and_v_acts))
 
         # A activations
-        # out = np.dot(self.v_to_a, self.v) + np.dot(self.r_to_a, self.r)
         sumr = np.sum(self.r) * self.parameters['LOW']
         sumv = np.sum(self.v) * self.parameters['HIGH']
         self.a_new = self.update_func(self.a, sumr + sumv)
@@ -226,6 +228,32 @@ class StandardModule(ModuleFactory):
         for connection in self.connections:
             connection.display_weights()
 
+    def get_weights(self):
+        """Used by CALMNetwork::save_weights."""
+        connection_data = {}
+        for connection in self.connections:
+            connection_data[connection.from_module.name] = connection.weights
+        return connection_data
+
+    def set_weights(self, from_mdl, weight_data):
+        """Used by CALMNetwork::load_weights."""
+        for connection in self.connections:
+            if connection.from_module == from_mdl:
+                connection.weights = weight_data
+                return
+
+    def display_activations(self):
+        s = "V: "
+        for node in self.v:
+            s += "{:10.6f}".format(node)
+        s += " A: {:10.6f}".format(self.a[0])
+        logger.info(s)
+        s = "R: "
+        for node in self.r:
+            s += "{:10.6f}".format(node)
+        s += " E: {:10.6f}".format(self.e[0])
+        logger.info(s)
+
     def __str__(self):
         return self.name
 
@@ -239,26 +267,35 @@ class MapModule(StandardModule):
         """Initialize connections to R nodes from V with values
            dependent on distance between R and V node pair."""
 
+        if self.size % 2 == 0:
+            mdl_size = self.size
+        else:
+            mdl_size = self.size + 1
         self.v_to_r = np.empty((self.size, self.size), dtype='d')
-        middle = int(floor(self.size / 2.0))
-        n = np.float64(self.size)
-
+        middle = int(floor(mdl_size / 2.0))
+        n = np.float64(mdl_size)
         # calculate optimal sigma
         sigma = (-4.0 / n) * np.log((0.01 + np.exp(-0.25 * n)) / (n + 1.0))
+
+        v_weights = []
+        for i in range(0, middle + 1):
+            v_weights.append((n + 1.0) * np.exp(0.0 - (sigma * i * i) / n) - n - 1.0 + self.parameters['DOWN'])
 
         for i in xrange(0, self.size):
             for j in xrange(0, self.size):
                 dist = abs(i - j)  # distance between R and V node
                 if dist > middle:
-                    dist = self.size - dist  # correct for size
+                    dist = mdl_size - dist  # correct for size
 
-                # in this function SIGMA depends on module size. A module size up to 20 has
-                # experimentally been defined to have an optimal sigma around 0.06. With more nodes,
-                # this sigma slightly increases. With 64 nodes, sigma should be picked around 0.15
-                # (see also https://www.dropbox.com/s/8d0u9o71sn4sbrh/gaussian.pdf )
-                self.v_to_r[i, j] = (n + 1.0) * np.exp(0.0 - (sigma * dist * dist) / n) - n - 1.0 + self.parameters['DOWN']
+                # SIGMA depends on module size. A module size up to 20 has
+                # experimentally been defined to have an optimal sigma around 0.06.
+                # With more nodes, this sigma slightly increases.
+                # With 64 nodes, sigma should be picked around 0.15
+                # see https://www.dropbox.com/s/8d0u9o71sn4sbrh/gaussian.pdf
+                self.v_to_r[i, j] = v_weights[dist]
 
-        logger.info("Sigma: {0}\nV to R weights: {1}".format(sigma, self.v_to_r))
+        with printoptions(formatter={'float': '{: 0.2f}'.format}, suppress=True):
+            logger.info("Sigma: {0}\nV to R weights: {1}".format(sigma, self.v_to_r))
 
 
 @python_2_unicode_compatible
