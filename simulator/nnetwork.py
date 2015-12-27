@@ -20,11 +20,12 @@ logger = logging.getLogger(__name__)
 @python_2_unicode_compatible
 class CALMNetwork(object):
     """
-    Defines a CALM network with variable number
-    of modules and a set of parameters.
+    Defines a CALM network with variable number of modules and a set of parameters.
     """
 
     original_calm = False  # Use if you want activation swaps after weight updates
+    allow_dynamic_resizing = False  # Use if modules should grow/shrink
+    resize_check_interval = 5  # Number of epochs between dynamic resizing
 
     def __init__(self, name, parameters):
         self.name = name
@@ -116,7 +117,7 @@ class CALMNetwork(object):
             # initialize weights first
             self.reset(False)
 
-        for _ in xrange(0, epochs):
+        for epoch in xrange(0, epochs):
             permuted_pattern_set = np.random.permutation(self.patterns)
             for pat in permuted_pattern_set:
 
@@ -148,10 +149,18 @@ class CALMNetwork(object):
                         for mdl in self.modules:
                             mdl.swap_activations()
 
+            if self.allow_dynamic_resizing and epoch % self.resize_check_interval == 0:
+                self.resize_modules()
+
     def reset(self, soft=True):
         """Resets activations and optionally weights"""
         for mdl in self.modules:
             mdl.reset(soft)
+
+    def resize_modules(self):
+        """Dynamically resizes modules if necessary based on potentials."""
+        for mdl in self.modules:
+            mdl.resize()
 
     def performance_check(self, iterations=100):
         """Tests the network on each pattern and reports activations and winners."""

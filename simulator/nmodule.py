@@ -68,6 +68,8 @@ class StandardModule(ModuleFactory):
         self.decay_value = np.float64((1.0 - self.parameters['K_A']))
         self.random_func = random_val
         self.winner = 0
+        self.total_ticks = 0  # number of ticks since start of learning, for dynamic resizing
+        self.potentials = np.full(self.size, 1, dtype='d')
 
     def define_vectorized_funcs(self):
         """Create some functions for fast vectorized computation."""
@@ -121,11 +123,7 @@ class StandardModule(ModuleFactory):
         self.connections.append(CALMConnection(from_mdl, self, self.parameters))
 
     def check_convergence(self):
-        """Determine winning R-node.
-           Note that winners use 1-based indexing."""
-
-        if len(self.r) < 2:
-            return True
+        """Determine winning R-node. Note that winners use 1-based indexing."""
 
         # Sort R-node activations and get indices of two largest values
         runner_up, possible_winner = np.argsort(self.r)[-2:]
@@ -144,11 +142,72 @@ class StandardModule(ModuleFactory):
         if not soft:
             for connection in self.connections:
                 connection.reset()
+            self.potentials.fill(1.0)
+            self.total_ticks = 0
+
+    def resize(self):
+        """Resize if necessary according to potential."""
+
+        # Sort potentials and get indices of two largest values
+        sorted_potentials = np.argsort(self.potentials)
+        weakest = sorted_potentials[0]
+        runner_up, strongest = sorted_potentials[-2:]
+
+        needs_resizing = False
+        node_to_remove = None
+        if self.potentials[weakest] < self.parameters['P_S']:
+            node_to_remove = weakest
+        if (self.potentials[strongest] - self.potentials[runner_up]) >= self.parameters['P_G']:
+            needs_resizing = True
+
+        if node_to_remove is not None and needs_resizing:
+            return False  # cannot grow and shrink at the same time!
+        if node_to_remove is None and not needs_resizing:
+            return False  # nothing to do
+
+        if node_to_remove is not None:
+            self.size -= 1
+
+            # remove node index from R and V node arrays and resize incoming connections
+            self.r = np.delete(self.r, node_to_remove)
+            self.v = np.delete(self.v, node_to_remove)
+
+            self.r_new = np.delete(self.r_new, node_to_remove)
+            self.v_new = np.delete(self.v_new, node_to_remove)
+
+            # just redo intra-weights
+            self.init_intraweights()
+
+            # modify incoming weight matrices
+            for connection in self.connections:
+                connection.prune_to(node_to_remove)
+        else:
+            # add node to R and V arrays and resize incoming connections
+            self.size += 1
+
+            # add node to R and V node arrays and resize incoming connections
+            self.r = np.append(self.r, 0.0)
+            self.v = np.append(self.v, 0.0)
+
+            self.r_new = np.append(self.r_new, 0.0)
+            self.v_new = np.append(self.v_new, 0.0)
+
+            # just redo intra-weights
+            self.init_intraweights()
+
+            # modify incoming weight matrices
+            for connection in self.connections:
+                connection.add_to()
+
+        # this tells the network we resized so outgoing connections can be adapted as well
+        return True
 
     def activate(self, testing=False):
         """Calculates incoming activations to all nodes."""
         self.activate_r(testing)
         self.activate_internal()
+        if not testing:
+            self.update_potential()
 
     def activate_r(self, testing):
         """
@@ -188,6 +247,12 @@ class StandardModule(ModuleFactory):
 
         # E activations
         self.e_new = self.update_func(self.e, self.parameters['AE'] * self.a)
+
+    def update_potential(self):
+        """Calculates new potential of all R-units, using variation of moving average."""
+        p_new = self.potentials * self.total_ticks * self.r_new * self.e_new[0]
+        self.total_ticks += 1
+        self.potentials = p_new / self.total_ticks
 
     def change_weights(self):
         """Apply the learning rule."""
@@ -294,6 +359,9 @@ class MapModule(StandardModule):
         with printoptions(formatter={'float': '{: 0.2f}'.format}, suppress=True):
             logger.info("Sigma: {0}\nV to R weights: {1}".format(sigma, self.v_to_r))
 
+    def resize(self):
+        pass  # do not allow dynamic resizing of CALMMap modules for now.
+
 
 @python_2_unicode_compatible
 class CALMConnection(object):
@@ -311,6 +379,28 @@ class CALMConnection(object):
 
     def reset(self):
         self.weights.fill(self.parameters['INITWT'])
+
+    def prune_from(self, node_to_remove):
+        """Prunes connection from a given node."""
+        self.weights = np.delete(self.weights, (node_to_remove), axis=1)
+
+    def prune_to(self, node_to_remove):
+        """Prunes connection to a given node."""
+        self.weights = np.delete(self.weights, (node_to_remove), axis=0)
+
+    def add_to(self):
+        """Adds weights to a new node in the to module."""
+        # new weights get value of average weight of current matrix
+        wt_avg = np.average(self.weights)
+        new_column = np.full((self.to_module.size, 1), wt_avg, dtype='d')
+        self.weights = np.append(self.weights, new_column, asix=1)
+
+    def add_from(self):
+        """Adds weights from a new node in the from module."""
+        # new weights get value of average weight of current matrix
+        wt_avg = np.average(self.weights)
+        new_row = np.full(self.from_module.size, wt_avg, dtype='d')
+        self.weights = np.row_stack((self.weights, new_row))
 
     def change_weight(self, to_idx, act_to_idx, mu, back_acts):
         """Calculate the change in weight"""
