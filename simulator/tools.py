@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib import colors
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D  # noqa
+from django.utils.six.moves import xrange
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,9 @@ class ConvergenceMap(BaseTool):
        x and y of given input module and plotting winner of
        target module."""
 
-    color_map = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF']
+    color_map = ['#000000', '#FF0000', '#00FF00', '#0000FF',
+                 '#FFFF00', '#FF00FF', '#800080', '#FF7F00',
+                 '#00FFFF', '#996633', '#409970', '#FF0080']
 
     def display(self, input_label, x, y, module_name, dim=100, show_plot=True):
 
@@ -200,7 +203,7 @@ class StackedPhasePortrait(BaseTool):
                 except IndexError:
                     break
 
-                print "{0}: {1}".format(x_vals[idx], y_vals[idx])
+                print("{0}: {1}".format(x_vals[idx], y_vals[idx]))
                 idx += 1
             else:
                 continue

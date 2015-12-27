@@ -157,7 +157,8 @@ class CALMNetwork(object):
         """Tests the network on each pattern and reports activations and winners."""
         for pat in self.patterns:
             with printoptions(formatter={'float': '{: 0.2f}'.format}, suppress=True):
-                logger.info("Pattern: {0}".format(pat))
+                for (k, v) in six.iteritems(pat):
+                    logger.info("Pattern: {0}: {1}".format(k, v))
 
             # reset activations
             for mdl in self.modules:
@@ -181,7 +182,7 @@ class CALMNetwork(object):
                     logger.info("Module {0}: {1} => {2}".format(mdl.name, mdl.r, mdl.winner))
 
     def test(self, iterations=100):
-        """Trains the network for the given amount of epochs and iterations."""
+        """Tests the network for the given amount of epochs and iterations."""
 
         self.reset()
 

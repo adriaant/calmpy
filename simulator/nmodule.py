@@ -121,19 +121,16 @@ class StandardModule(ModuleFactory):
         self.connections.append(CALMConnection(from_mdl, self, self.parameters))
 
     def check_convergence(self):
-        """If one node is larger than 0.9 we have a winner.
+        """Determine winning R-node.
            Note that winners use 1-based indexing."""
 
-        # first check if we have one R-node with high activation
-        winners = (self.r >= self.parameters['HIGHCRIT'])
-        if winners.sum() == 1:
-            self.winner = np.where(winners == True)[0][0] + 1  # noqa
+        if len(self.r) < 2:
             return True
 
-        # possibly input is low, so check if other nodes are below threshold
-        losers = (self.r < self.parameters['LOWCRIT'])
-        if self.size - losers.sum() == 1:
-            self.winner = np.where(losers == False)[0][0] + 1 # noqa
+        # Sort R-node activations and get indices of two largest values
+        runner_up, possible_winner = np.argsort(self.r)[-2:]
+        if (self.r[possible_winner] - self.r[runner_up]) >= self.parameters['HIGHCRIT']:
+            self.winner = possible_winner
             return True
         return False
 
