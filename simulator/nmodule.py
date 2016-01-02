@@ -155,9 +155,14 @@ class StandardModule(ModuleFactory):
         logger.info("    {0}: potentials are {1}:".format(self.name, self.potentials))
         needs_resizing = False
         node_to_remove = None
+
+        # check weakest node's potential
         if self.potentials[weakest] < self.parameters['P_S']:
             node_to_remove = weakest
-        if (self.potentials[strongest] - self.potentials[runner_up]) >= self.parameters['P_G']:
+
+        # check difference in potential between strongest node and runner-up
+        diff = ((self.potentials[strongest] - self.potentials[runner_up]) / self.potentials[strongest]) * 100.0
+        if diff >= self.parameters['P_G']:
             needs_resizing = True
 
         if node_to_remove is not None and needs_resizing:
@@ -259,7 +264,7 @@ class StandardModule(ModuleFactory):
     def update_potential(self):
         """Calculates new potential of all R-units, using variation of moving average."""
         # print self.potentials, self.total_ticks, self.r_new, self.e_new[0]
-        p_new = self.potentials * self.total_ticks * self.r_new * self.e_new[0]
+        p_new = self.potentials * self.total_ticks + self.r_new * self.e_new[0]
         self.total_ticks += 1
         self.potentials = p_new / self.total_ticks
 
@@ -401,15 +406,15 @@ class CALMConnection(object):
         """Adds weights to a new node in the to module."""
         # new weights get value of average weight of current matrix
         wt_avg = np.average(self.weights)
-        new_column = np.full((self.to_module.size, 1), wt_avg, dtype='d')
-        self.weights = np.append(self.weights, new_column, asix=1)
+        new_row = np.full(self.from_module.size, wt_avg, dtype='d')
+        self.weights = np.row_stack((self.weights, new_row))
 
     def add_from(self):
         """Adds weights from a new node in the from module."""
         # new weights get value of average weight of current matrix
         wt_avg = np.average(self.weights)
-        new_row = np.full(self.from_module.size, wt_avg, dtype='d')
-        self.weights = np.row_stack((self.weights, new_row))
+        new_column = np.full((self.to_module.size, 1), wt_avg, dtype='d')
+        self.weights = np.append(self.weights, new_column, axis=1)
 
     def change_weight(self, to_idx, act_to_idx, mu, back_acts):
         """Calculate the change in weight"""
