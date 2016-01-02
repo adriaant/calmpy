@@ -128,7 +128,7 @@ class StandardModule(ModuleFactory):
         # Sort R-node activations and get indices of two largest values
         runner_up, possible_winner = np.argsort(self.r)[-2:]
         if (self.r[possible_winner] - self.r[runner_up]) >= self.parameters['HIGHCRIT']:
-            self.winner = possible_winner
+            self.winner = possible_winner + 1
             return True
         return False
 
@@ -152,7 +152,7 @@ class StandardModule(ModuleFactory):
         sorted_potentials = np.argsort(self.potentials)
         weakest = sorted_potentials[0]
         runner_up, strongest = sorted_potentials[-2:]
-
+        logger.info("    {0}: potentials are {1}:".format(self.name, self.potentials))
         needs_resizing = False
         node_to_remove = None
         if self.potentials[weakest] < self.parameters['P_S']:
@@ -166,6 +166,10 @@ class StandardModule(ModuleFactory):
             return False  # nothing to do
 
         if node_to_remove is not None:
+            if self.size == 2:
+                return False  # always need at least 2 R-V node pairs
+
+            logger.info("    {0}: pruning R-V pair at index {1}:".format(self.name, node_to_remove))
             self.size -= 1
 
             # remove node index from R and V node arrays and resize incoming connections
@@ -182,6 +186,7 @@ class StandardModule(ModuleFactory):
             for connection in self.connections:
                 connection.prune_to(node_to_remove)
         else:
+            logger.info("    {0}: adding R-V pair".format(self.name))
             # add node to R and V arrays and resize incoming connections
             self.size += 1
 
@@ -198,6 +203,9 @@ class StandardModule(ModuleFactory):
             # modify incoming weight matrices
             for connection in self.connections:
                 connection.add_to()
+
+        # Also reset potentials
+        self.potentials = np.full(self.size, 1, dtype='d')
 
         # this tells the network we resized so outgoing connections can be adapted as well
         return True
@@ -250,6 +258,7 @@ class StandardModule(ModuleFactory):
 
     def update_potential(self):
         """Calculates new potential of all R-units, using variation of moving average."""
+        # print self.potentials, self.total_ticks, self.r_new, self.e_new[0]
         p_new = self.potentials * self.total_ticks * self.r_new * self.e_new[0]
         self.total_ticks += 1
         self.potentials = p_new / self.total_ticks

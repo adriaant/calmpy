@@ -188,7 +188,7 @@ class CALMNetwork(object):
 
             with printoptions(formatter={'float': '{: 0.2f}'.format}, suppress=True):
                 for mdl in self.modules:
-                    logger.info("Module {0}: {1} => {2}".format(mdl.name, mdl.r, mdl.winner))
+                    logger.info("Module {0}: {1} ➞ {2}".format(mdl.name, mdl.r, mdl.winner))
 
     def test(self, iterations=100):
         """Tests the network for the given amount of epochs and iterations."""
